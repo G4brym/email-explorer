@@ -1,0 +1,17 @@
+{
+	"name": "email-explorer",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev"
+	},
+	"dependencies": {
+		"email-explorer": "^1.0.0"
+	},
+	"devDependencies": {
+		"typescript": "5.9.3",
+		"wrangler": "^4.45.0"
+	}
+}

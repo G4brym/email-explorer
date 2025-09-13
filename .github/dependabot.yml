@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/pnpm-lock.yaml"
+      - "/packages/worker"
+      - "/packages/worker/dev"
+      - "/packages/github-action"
+    schedule:
+      interval: "weekly"
+    groups:
+      prod-deps:
+        dependency-type: "production"
+      dev-deps:
+        dependency-type: "development"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

@@ -1,0 +1,66 @@
+{
+	"name": "email-explorer",
+	"version": "1.0.2",
+	"description": "A self-hosted, serverless worker for sending and receiving emails on Cloudflare",
+	"scripts": {
+		"build": "tsup src/index.ts --format esm --external cloudflare:workers --external cloudflare:email --dts && cp -R ../dashboard/dist/ dashboard/ && cp ../../README.md . && cp ../../LICENSE .",
+		"test": "tsc && npx vitest run --config tests/vitest.config.mts",
+		"package": "npm run build && npm pack",
+		"publish-npm": "npm publish"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dashboard",
+		"dist",
+		"LICENSE",
+		"README.md"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"cloudflare",
+		"worker",
+		"workers",
+		"serverless",
+		"cloudflare email routing",
+		"cloudflare email sending",
+		"gmail",
+		"ui",
+		"cf",
+		"typescript",
+		"npm",
+		"package",
+		"esm",
+		"umd",
+		"typed"
+	],
+	"author": "Gabriel Massadas",
+	"license": "MIT",
+	"homepage": "https://github.com/G4brym/email-explorer",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/G4brym/email-explorer.git"
+	},
+	"bugs": {
+		"url": "https://github.com/G4brym/email-explorer/issues"
+	},
+	"dependencies": {
+		"chanfana": "2.8.3",
+		"hono": "4.10.3",
+		"mimetext": "^3.0.27",
+		"postal-mime": "^2.6.0",
+		"workers-qb": "^1.11.2",
+		"zod": "^3.25.76"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.10.0",
+		"@cloudflare/workers-types": "^4.20251014.0",
+		"@types/node": "24.9.1",
+		"tsup": "^8.5.0",
+		"typescript": "5.9.3",
+		"wrangler": "^4.45.0"
+	}
+}

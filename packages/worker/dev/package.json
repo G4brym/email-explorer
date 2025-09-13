@@ -1,0 +1,10 @@
+{
+	"name": "email-explorer-dev-worker",
+	"devDependencies": {
+		"wrangler": "^4.45.0",
+		"email-explorer": "workspace:*"
+	},
+	"scripts": {
+		"deploy": "wrangler deploy"
+	}
+}

@@ -47,13 +47,7 @@
         </div>
         <div class="mb-6">
           <label for="body" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Message</label>
-          <textarea 
-            id="body" 
-            v-model="body" 
-            rows="12" 
-            class="block w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 px-4 py-3 transition-all duration-200 resize-none" 
-            placeholder="Write your message here..."
-          ></textarea>
+          <RichTextEditor v-model="body" />
         </div>
         <div class="flex justify-end gap-3">
           <button 
@@ -86,6 +80,7 @@ import { useEmailStore } from "@/stores/emails";
 import { useMailboxStore } from "@/stores/mailboxes";
 import { useUIStore } from "@/stores/ui";
 import api from "@/services/api";
+import RichTextEditor from "./RichTextEditor.vue";
 
 const uiStore = useUIStore();
 const { isComposeModalOpen, composeOptions } = storeToRefs(uiStore);
@@ -163,6 +158,23 @@ const stripHtml = (html: string) => {
 	return div.textContent || div.innerText || '';
 };
 
+// Helper to convert HTML to plain text with better formatting
+const htmlToPlainText = (html: string): string => {
+	const div = document.createElement('div');
+	div.innerHTML = html;
+	
+	// Replace <br> and <p> tags with newlines
+	let text = html
+		.replace(/<br\s*\/?>/gi, '\n')
+		.replace(/<\/p>/gi, '\n\n')
+		.replace(/<p[^>]*>/gi, '')
+		.replace(/<div[^>]*>/gi, '')
+		.replace(/<\/div>/gi, '\n');
+	
+	div.innerHTML = text;
+	return (div.textContent || div.innerText || '').trim();
+};
+
 const send = async () => {
 	error.value = null;
 	if (!currentMailbox.value) {
@@ -176,7 +188,7 @@ const send = async () => {
 			from: currentMailbox.value.email,
 			subject: subject.value,
 			html: body.value,
-			text: body.value,
+			text: htmlToPlainText(body.value),
 		};
 		
 		// Use appropriate API endpoint based on mode

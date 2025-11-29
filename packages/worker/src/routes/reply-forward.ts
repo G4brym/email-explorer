@@ -1,9 +1,9 @@
 import { EmailMessage } from "cloudflare:email";
 import { contentJson, OpenAPIRoute } from "chanfana";
+import type { Context } from "hono";
 import { z } from "zod";
 import { buildMimeMessage } from "../mime-builder";
 import type { Env, Session } from "../types";
-import type { Context } from "hono";
 
 type AppContext = Context<{ Bindings: Env; Variables: { session?: Session } }>;
 
@@ -63,7 +63,10 @@ export class PostReplyEmail extends OpenAPIRoute {
 				description: "Bad request",
 				...contentJson(ErrorResponseSchema),
 			},
-			"404": { description: "Original email not found", ...contentJson(ErrorResponseSchema) },
+			"404": {
+				description: "Original email not found",
+				...contentJson(ErrorResponseSchema),
+			},
 		},
 	};
 
@@ -82,7 +85,7 @@ export class PostReplyEmail extends OpenAPIRoute {
 		const ns = c.env.MAILBOX;
 		const doId = ns.idFromName(mailboxId);
 		const stub = ns.get(doId);
-		const originalEmail = await stub.getEmail(id) as any;
+		const originalEmail = (await stub.getEmail(id)) as any;
 
 		if (!originalEmail) {
 			return c.json({ error: "Original email not found" }, 404);
@@ -90,8 +93,11 @@ export class PostReplyEmail extends OpenAPIRoute {
 
 		// Build threading information
 		const in_reply_to = originalEmail.id;
-		const references = originalEmail.email_references 
-			? [...JSON.parse(originalEmail.email_references as string), originalEmail.id]
+		const references = originalEmail.email_references
+			? [
+					...JSON.parse(originalEmail.email_references as string),
+					originalEmail.id,
+				]
 			: [originalEmail.id];
 		const thread_id = originalEmail.thread_id || originalEmail.id;
 
@@ -105,7 +111,7 @@ export class PostReplyEmail extends OpenAPIRoute {
 			subject,
 			text,
 			html,
-			attachments: attachments?.map(att => ({
+			attachments: attachments?.map((att) => ({
 				filename: att.filename,
 				content: att.content,
 				type: att.type,
@@ -185,7 +191,10 @@ export class PostForwardEmail extends OpenAPIRoute {
 				description: "Bad request",
 				...contentJson(ErrorResponseSchema),
 			},
-			"404": { description: "Original email not found", ...contentJson(ErrorResponseSchema) },
+			"404": {
+				description: "Original email not found",
+				...contentJson(ErrorResponseSchema),
+			},
 		},
 	};
 
@@ -204,7 +213,7 @@ export class PostForwardEmail extends OpenAPIRoute {
 		const ns = c.env.MAILBOX;
 		const doId = ns.idFromName(mailboxId);
 		const stub = ns.get(doId);
-		const originalEmail = await stub.getEmail(id) as any;
+		const originalEmail = (await stub.getEmail(id)) as any;
 
 		if (!originalEmail) {
 			return c.json({ error: "Original email not found" }, 404);
@@ -220,7 +229,7 @@ export class PostForwardEmail extends OpenAPIRoute {
 			subject,
 			text,
 			html,
-			attachments: attachments?.map(att => ({
+			attachments: attachments?.map((att) => ({
 				filename: att.filename,
 				content: att.content,
 				type: att.type,

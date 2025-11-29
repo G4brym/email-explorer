@@ -87,9 +87,15 @@ export default {
 			{ responseType: "blob" },
 		),
 	replyToEmail: (mailboxId: string, emailId: string, email: any) =>
-		apiClient.post(`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/reply`, email),
+		apiClient.post(
+			`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/reply`,
+			email,
+		),
 	forwardEmail: (mailboxId: string, emailId: string, email: any) =>
-		apiClient.post(`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/forward`, email),
+		apiClient.post(
+			`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/forward`,
+			email,
+		),
 
 	// Folders
 	listFolders: (mailboxId: string) =>
@@ -120,7 +126,11 @@ export default {
 		apiClient.post("/api/v1/auth/admin/register", { email, password }),
 	adminListUsers: () => apiClient.get("/api/v1/auth/admin/users"),
 	adminGrantAccess: (userId: string, mailboxId: string, role: string) =>
-		apiClient.post("/api/v1/auth/admin/grant-access", { userId, mailboxId, role }),
+		apiClient.post("/api/v1/auth/admin/grant-access", {
+			userId,
+			mailboxId,
+			role,
+		}),
 	adminRevokeAccess: (userId: string, mailboxId: string) =>
 		apiClient.post("/api/v1/auth/admin/revoke-access", { userId, mailboxId }),
 };

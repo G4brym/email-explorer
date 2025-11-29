@@ -224,10 +224,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useAuthStore } from "@/stores/auth";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 
 interface User {
 	id: string;
@@ -278,7 +278,8 @@ async function handleRegisterUser() {
 		// Reload users list
 		await loadUsers();
 	} catch (error: any) {
-		registerError.value = error.response?.data?.error || "Failed to create user";
+		registerError.value =
+			error.response?.data?.error || "Failed to create user";
 	} finally {
 		registerLoading.value = false;
 	}
@@ -321,7 +322,7 @@ async function handleGrantAccess() {
 		await api.adminGrantAccess(
 			selectedUser.value.id,
 			accessForm.value.mailboxId,
-			accessForm.value.role
+			accessForm.value.role,
 		);
 		accessSuccess.value = `Access granted successfully!`;
 		accessForm.value.mailboxId = "";
@@ -335,7 +336,11 @@ async function handleGrantAccess() {
 async function handleRevokeAccess() {
 	if (!selectedUser.value || !accessForm.value.mailboxId) return;
 
-	if (!confirm(`Revoke access to ${accessForm.value.mailboxId} for ${selectedUser.value.email}?`)) {
+	if (
+		!confirm(
+			`Revoke access to ${accessForm.value.mailboxId} for ${selectedUser.value.email}?`,
+		)
+	) {
 		return;
 	}
 
@@ -344,11 +349,15 @@ async function handleRevokeAccess() {
 	accessSuccess.value = "";
 
 	try {
-		await api.adminRevokeAccess(selectedUser.value.id, accessForm.value.mailboxId);
+		await api.adminRevokeAccess(
+			selectedUser.value.id,
+			accessForm.value.mailboxId,
+		);
 		accessSuccess.value = `Access revoked successfully!`;
 		accessForm.value.mailboxId = "";
 	} catch (error: any) {
-		accessError.value = error.response?.data?.error || "Failed to revoke access";
+		accessError.value =
+			error.response?.data?.error || "Failed to revoke access";
 	} finally {
 		accessLoading.value = false;
 	}

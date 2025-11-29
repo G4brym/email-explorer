@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 import Admin from "@/views/Admin.vue";
 import Contacts from "@/views/Contacts.vue";
 import EmailDetail from "@/views/EmailDetail.vue";
@@ -10,7 +11,6 @@ import NotFound from "@/views/NotFound.vue";
 import Register from "@/views/Register.vue";
 import SearchResults from "@/views/SearchResults.vue";
 import Settings from "@/views/Settings.vue";
-import { useAuthStore } from "@/stores/auth";
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -114,7 +114,11 @@ router.beforeEach(async (to, from, next) => {
 	} else if (requiresAdmin && !authStore.isAdmin) {
 		// Redirect to home if not admin
 		next({ name: "Home" });
-	} else if (isPublicRoute && authStore.isAuthenticated && (to.name === "Login" || to.name === "Register")) {
+	} else if (
+		isPublicRoute &&
+		authStore.isAuthenticated &&
+		(to.name === "Login" || to.name === "Register")
+	) {
 		// Redirect to home if already authenticated and trying to access login/register
 		next({ name: "Home" });
 	} else {

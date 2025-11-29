@@ -47,11 +47,20 @@ export class MailboxDO extends DurableObject<Env> {
 
 		// Detect if this is the auth singleton
 		// We use a marker in storage to identify the auth DO
-		const authMarker = this.ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").toArray();
+		const authMarker = this.ctx.storage.sql
+			.exec(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+			)
+			.toArray();
 		const hasAuthTables = authMarker.length > 0;
 
 		// Check if this is first initialization
-		const isFirstInit = this.ctx.storage.sql.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'").toArray().length === 0;
+		const isFirstInit =
+			this.ctx.storage.sql
+				.exec(
+					"SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'",
+				)
+				.toArray().length === 0;
 
 		// If first init, check the ID to determine type
 		// idFromName creates deterministic IDs, so we check if this ID matches the expected AUTH ID
@@ -95,10 +104,7 @@ export class MailboxDO extends DurableObject<Env> {
 	// Auth operation: check if any users exist
 	async hasUsers(): Promise<boolean> {
 		if (!this.#isAuthDO) return false;
-		const result = this.#qb
-			.select("users")
-			.fields(["COUNT(*) as count"])
-			.one();
+		const result = this.#qb.select("users").fields(["COUNT(*) as count"]).one();
 		return (result.results?.count as number) > 0;
 	}
 
@@ -114,7 +120,11 @@ export class MailboxDO extends DurableObject<Env> {
 	}
 
 	// Auth operation: register a user
-	async register(email: string, password: string, isFirstUser = false): Promise<User> {
+	async register(
+		email: string,
+		password: string,
+		isFirstUser = false,
+	): Promise<User> {
 		if (!this.#isAuthDO) throw new Error("Not an auth DO");
 
 		const userId = crypto.randomUUID();
@@ -157,7 +167,10 @@ export class MailboxDO extends DurableObject<Env> {
 		if (!result.results) return null;
 
 		const user = result.results;
-		const isValid = await this.#verifyPassword(password, String(user.password_hash));
+		const isValid = await this.#verifyPassword(
+			password,
+			String(user.password_hash),
+		);
 
 		if (!isValid) return null;
 
@@ -307,7 +320,9 @@ export class MailboxDO extends DurableObject<Env> {
 	}
 
 	// Auth operation: get user mailboxes
-	async getUserMailboxes(userId: string): Promise<Array<{ mailboxId: string; role: string }>> {
+	async getUserMailboxes(
+		userId: string,
+	): Promise<Array<{ mailboxId: string; role: string }>> {
 		if (!this.#isAuthDO) throw new Error("Not an auth DO");
 
 		const result = this.#qb

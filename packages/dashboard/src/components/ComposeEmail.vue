@@ -76,10 +76,10 @@
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import api from "@/services/api";
 import { useEmailStore } from "@/stores/emails";
 import { useMailboxStore } from "@/stores/mailboxes";
 import { useUIStore } from "@/stores/ui";
-import api from "@/services/api";
 import RichTextEditor from "./RichTextEditor.vue";
 
 const uiStore = useUIStore();
@@ -109,7 +109,10 @@ const modalTitle = computed(() => {
 
 // Format quoted text for replies
 const formatQuotedText = (text: string) => {
-	return text.split('\n').map(line => `> ${line}`).join('\n');
+	return text
+		.split("\n")
+		.map((line) => `> ${line}`)
+		.join("\n");
 };
 
 const closeModal = () => {
@@ -125,23 +128,32 @@ watch(isComposeModalOpen, (isOpen) => {
 	if (isOpen) {
 		const options = composeOptions.value;
 		const original = options.originalEmail;
-		
+
 		if (options.mode === "reply" && original) {
 			to.value = original.sender;
-			subject.value = original.subject.startsWith("Re: ") ? original.subject : `Re: ${original.subject}`;
+			subject.value = original.subject.startsWith("Re: ")
+				? original.subject
+				: `Re: ${original.subject}`;
 			body.value = `\n\n---\nOn ${original.date}, ${original.sender} wrote:\n${formatQuotedText(stripHtml(original.body))}`;
 		} else if (options.mode === "reply-all" && original) {
 			// For reply all, include both sender and original recipient
 			const recipients = new Set([original.sender]);
-			if (original.recipient && original.recipient !== currentMailbox.value?.email) {
+			if (
+				original.recipient &&
+				original.recipient !== currentMailbox.value?.email
+			) {
 				recipients.add(original.recipient);
 			}
 			to.value = Array.from(recipients).join(", ");
-			subject.value = original.subject.startsWith("Re: ") ? original.subject : `Re: ${original.subject}`;
+			subject.value = original.subject.startsWith("Re: ")
+				? original.subject
+				: `Re: ${original.subject}`;
 			body.value = `\n\n---\nOn ${original.date}, ${original.sender} wrote:\n${formatQuotedText(stripHtml(original.body))}`;
 		} else if (options.mode === "forward" && original) {
 			to.value = "";
-			subject.value = original.subject.startsWith("Fwd: ") ? original.subject : `Fwd: ${original.subject}`;
+			subject.value = original.subject.startsWith("Fwd: ")
+				? original.subject
+				: `Fwd: ${original.subject}`;
 			body.value = `\n\n---\nForwarded message:\nFrom: ${original.sender}\nDate: ${original.date}\nSubject: ${original.subject}\n\n${stripHtml(original.body)}`;
 		} else {
 			to.value = "";
@@ -153,26 +165,26 @@ watch(isComposeModalOpen, (isOpen) => {
 
 // Helper to strip HTML tags
 const stripHtml = (html: string) => {
-	const div = document.createElement('div');
+	const div = document.createElement("div");
 	div.innerHTML = html;
-	return div.textContent || div.innerText || '';
+	return div.textContent || div.innerText || "";
 };
 
 // Helper to convert HTML to plain text with better formatting
 const htmlToPlainText = (html: string): string => {
-	const div = document.createElement('div');
+	const div = document.createElement("div");
 	div.innerHTML = html;
-	
+
 	// Replace <br> and <p> tags with newlines
 	let text = html
-		.replace(/<br\s*\/?>/gi, '\n')
-		.replace(/<\/p>/gi, '\n\n')
-		.replace(/<p[^>]*>/gi, '')
-		.replace(/<div[^>]*>/gi, '')
-		.replace(/<\/div>/gi, '\n');
-	
+		.replace(/<br\s*\/?>/gi, "\n")
+		.replace(/<\/p>/gi, "\n\n")
+		.replace(/<p[^>]*>/gi, "")
+		.replace(/<div[^>]*>/gi, "")
+		.replace(/<\/div>/gi, "\n");
+
 	div.innerHTML = text;
-	return (div.textContent || div.innerText || '').trim();
+	return (div.textContent || div.innerText || "").trim();
 };
 
 const send = async () => {
@@ -190,9 +202,12 @@ const send = async () => {
 			html: body.value,
 			text: htmlToPlainText(body.value),
 		};
-		
+
 		// Use appropriate API endpoint based on mode
-		if (composeOptions.value.mode === "reply" || composeOptions.value.mode === "reply-all") {
+		if (
+			composeOptions.value.mode === "reply" ||
+			composeOptions.value.mode === "reply-all"
+		) {
 			const originalEmailId = composeOptions.value.originalEmail?.id;
 			if (originalEmailId) {
 				await api.replyToEmail(mailboxId, originalEmailId, emailData);
@@ -209,7 +224,7 @@ const send = async () => {
 		} else {
 			await emailStore.sendEmail(mailboxId, emailData);
 		}
-		
+
 		to.value = "";
 		subject.value = "";
 		body.value = "";

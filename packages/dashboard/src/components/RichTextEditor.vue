@@ -331,146 +331,174 @@
 </template>
 
 <script setup lang="ts">
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import TextAlign from '@tiptap/extension-text-align'
-import Link from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
-import { TextStyle } from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
-import Highlight from '@tiptap/extension-highlight'
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { Color } from "@tiptap/extension-color";
+import Highlight from "@tiptap/extension-highlight";
+import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Underline from "@tiptap/extension-underline";
+import StarterKit from "@tiptap/starter-kit";
+import { EditorContent, useEditor } from "@tiptap/vue-3";
+import { onBeforeUnmount, ref, watch } from "vue";
 
 const props = defineProps<{
-  modelValue: string
-}>()
+	modelValue: string;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+	"update:modelValue": [value: string];
+}>();
 
-const showSourceCode = ref(false)
-const sourceCode = ref('')
-const showTextColorPicker = ref(false)
-const showHighlightPicker = ref(false)
+const showSourceCode = ref(false);
+const sourceCode = ref("");
+const showTextColorPicker = ref(false);
+const showHighlightPicker = ref(false);
 
 const textColors = [
-  '#000000', '#333333', '#666666', '#999999', '#CCCCCC',
-  '#FF0000', '#FF6B6B', '#FFA500', '#FFD700', '#FFFF00',
-  '#00FF00', '#00CED1', '#0000FF', '#9370DB', '#FF1493'
-]
+	"#000000",
+	"#333333",
+	"#666666",
+	"#999999",
+	"#CCCCCC",
+	"#FF0000",
+	"#FF6B6B",
+	"#FFA500",
+	"#FFD700",
+	"#FFFF00",
+	"#00FF00",
+	"#00CED1",
+	"#0000FF",
+	"#9370DB",
+	"#FF1493",
+];
 
 const highlightColors = [
-  '#FFFF00', '#FFE4B5', '#FFB6C1', '#ADD8E6', '#90EE90',
-  '#DDA0DD', '#F0E68C', '#FFDAB9', '#E0BBE4', '#C1E1C1'
-]
+	"#FFFF00",
+	"#FFE4B5",
+	"#FFB6C1",
+	"#ADD8E6",
+	"#90EE90",
+	"#DDA0DD",
+	"#F0E68C",
+	"#FFDAB9",
+	"#E0BBE4",
+	"#C1E1C1",
+];
 
 const editor = useEditor({
-  extensions: [
-    StarterKit,
-    Underline,
-    TextAlign.configure({
-      types: ['heading', 'paragraph'],
-    }),
-    Link.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        class: 'text-blue-600 underline hover:text-blue-800',
-      },
-    }),
-    Image,
-    TextStyle,
-    Color,
-    Highlight.configure({
-      multicolor: true,
-    }),
-  ],
-  content: props.modelValue,
-  editorProps: {
-    attributes: {
-      class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px]',
-    },
-  },
-  onUpdate: ({ editor }) => {
-    const html = editor.getHTML()
-    emit('update:modelValue', html)
-    if (showSourceCode.value) {
-      sourceCode.value = html
-    }
-  },
-})
+	extensions: [
+		StarterKit,
+		Underline,
+		TextAlign.configure({
+			types: ["heading", "paragraph"],
+		}),
+		Link.configure({
+			openOnClick: false,
+			HTMLAttributes: {
+				class: "text-blue-600 underline hover:text-blue-800",
+			},
+		}),
+		Image,
+		TextStyle,
+		Color,
+		Highlight.configure({
+			multicolor: true,
+		}),
+	],
+	content: props.modelValue,
+	editorProps: {
+		attributes: {
+			class: "prose prose-sm max-w-none focus:outline-none min-h-[200px]",
+		},
+	},
+	onUpdate: ({ editor }) => {
+		const html = editor.getHTML();
+		emit("update:modelValue", html);
+		if (showSourceCode.value) {
+			sourceCode.value = html;
+		}
+	},
+});
 
 // Watch for external changes to modelValue
-watch(() => props.modelValue, (newValue) => {
-  if (editor.value && newValue !== editor.value.getHTML()) {
-    editor.value.commands.setContent(newValue)
-  }
-})
+watch(
+	() => props.modelValue,
+	(newValue) => {
+		if (editor.value && newValue !== editor.value.getHTML()) {
+			editor.value.commands.setContent(newValue);
+		}
+	},
+);
 
 // Update editor from source code
 const updateFromSource = () => {
-  if (editor.value) {
-    editor.value.commands.setContent(sourceCode.value)
-  }
-}
+	if (editor.value) {
+		editor.value.commands.setContent(sourceCode.value);
+	}
+};
 
 // Toggle source code view
 watch(showSourceCode, (isShown) => {
-  if (isShown) {
-    sourceCode.value = editor.value?.getHTML() || ''
-  }
-})
+	if (isShown) {
+		sourceCode.value = editor.value?.getHTML() || "";
+	}
+});
 
 // Link functionality
 const setLink = () => {
-  const previousUrl = editor.value?.getAttributes('link').href
-  const url = window.prompt('URL', previousUrl)
+	const previousUrl = editor.value?.getAttributes("link").href;
+	const url = window.prompt("URL", previousUrl);
 
-  if (url === null) {
-    return
-  }
+	if (url === null) {
+		return;
+	}
 
-  if (url === '') {
-    editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-    return
-  }
+	if (url === "") {
+		editor.value?.chain().focus().extendMarkRange("link").unsetLink().run();
+		return;
+	}
 
-  editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-}
+	editor.value
+		?.chain()
+		.focus()
+		.extendMarkRange("link")
+		.setLink({ href: url })
+		.run();
+};
 
 // Text color functionality
 const setTextColor = (color: string) => {
-  editor.value?.chain().focus().setColor(color).run()
-  showTextColorPicker.value = false
-}
+	editor.value?.chain().focus().setColor(color).run();
+	showTextColorPicker.value = false;
+};
 
 // Highlight functionality
 const setHighlight = (color: string) => {
-  editor.value?.chain().focus().toggleHighlight({ color }).run()
-  showHighlightPicker.value = false
-}
+	editor.value?.chain().focus().toggleHighlight({ color }).run();
+	showHighlightPicker.value = false;
+};
 
 // Close color pickers when clicking outside
 const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
-  if (!target.closest('.relative')) {
-    showTextColorPicker.value = false
-    showHighlightPicker.value = false
-  }
-}
+	const target = event.target as HTMLElement;
+	if (!target.closest(".relative")) {
+		showTextColorPicker.value = false;
+		showHighlightPicker.value = false;
+	}
+};
 
 // Add click listener
-if (typeof window !== 'undefined') {
-  window.addEventListener('click', handleClickOutside)
+if (typeof window !== "undefined") {
+	window.addEventListener("click", handleClickOutside);
 }
 
 onBeforeUnmount(() => {
-  editor.value?.destroy()
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('click', handleClickOutside)
-  }
-})
+	editor.value?.destroy();
+	if (typeof window !== "undefined") {
+		window.removeEventListener("click", handleClickOutside);
+	}
+});
 </script>
 
 <style scoped>

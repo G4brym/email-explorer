@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import api from "@/services/api";
 
 export interface User {
@@ -114,7 +114,7 @@ export const useAuthStore = defineStore("auth", () => {
 			};
 			localStorage.setItem("session", JSON.stringify(session.value));
 			return true;
-		} catch (err) {
+		} catch (_err) {
 			await logout();
 			return false;
 		} finally {

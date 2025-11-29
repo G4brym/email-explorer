@@ -5,7 +5,6 @@ import { cors } from "hono/cors";
 import PostalMime from "postal-mime";
 import { z } from "zod";
 import { buildMimeMessage } from "./mime-builder";
-import type { Env, EmailExplorerOptions, Session } from "./types";
 import {
 	GetMe,
 	GetUsers,
@@ -18,6 +17,7 @@ import {
 	PutUser,
 } from "./routes/auth";
 import { PostForwardEmail, PostReplyEmail } from "./routes/reply-forward";
+import type { EmailExplorerOptions, Env, Session } from "./types";
 
 type AppContext = Context<{ Bindings: Env; Variables: { session?: Session } }>;
 
@@ -380,7 +380,17 @@ class PostEmail extends OpenAPIRoute {
 	async handle(c: AppContext) {
 		const data = await this.getValidatedData<typeof this.schema>();
 		const { mailboxId } = data.params;
-		const { to, from, subject, html, text, attachments, in_reply_to, references, thread_id } = data.body;
+		const {
+			to,
+			from,
+			subject,
+			html,
+			text,
+			attachments,
+			in_reply_to,
+			references,
+			thread_id,
+		} = data.body;
 
 		const key = `mailboxes/${mailboxId}.json`;
 		const obj = await c.env.BUCKET.head(key);
@@ -398,7 +408,7 @@ class PostEmail extends OpenAPIRoute {
 			subject,
 			text,
 			html,
-			attachments: attachments?.map(att => ({
+			attachments: attachments?.map((att) => ({
 				filename: att.filename,
 				content: att.content,
 				type: att.type,
@@ -411,11 +421,11 @@ class PostEmail extends OpenAPIRoute {
 
 		const message = new EmailMessage(from, toStr, mimeMessage);
 
-        try {
-            await c.env.SEND_EMAIL.send(message);
-        } catch (e) {
-            return c.json({ error: (e as Error).message }, 500);
-        }
+		try {
+			await c.env.SEND_EMAIL.send(message);
+		} catch (e) {
+			return c.json({ error: (e as Error).message }, 500);
+		}
 
 		const messageId = crypto.randomUUID();
 
@@ -1160,7 +1170,10 @@ function getSessionToken(request: Request): string | null {
 }
 
 // Helper function to validate session
-async function validateSession(request: Request, env: Env): Promise<Session | null> {
+async function validateSession(
+	request: Request,
+	env: Env,
+): Promise<Session | null> {
 	const token = getSessionToken(request);
 	if (!token) return null;
 
@@ -1224,7 +1237,10 @@ openapi.put("/api/v1/mailboxes/:mailboxId/emails/:id", PutEmail);
 openapi.delete("/api/v1/mailboxes/:mailboxId/emails/:id", DeleteEmail);
 openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/move", PostMoveEmail);
 openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/reply", PostReplyEmail);
-openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/forward", PostForwardEmail);
+openapi.post(
+	"/api/v1/mailboxes/:mailboxId/emails/:id/forward",
+	PostForwardEmail,
+);
 openapi.get("/api/v1/mailboxes/:mailboxId/folders", GetFolders);
 openapi.post("/api/v1/mailboxes/:mailboxId/folders", PostFolder);
 openapi.put("/api/v1/mailboxes/:mailboxId/folders/:id", PutFolder);
@@ -1352,18 +1368,17 @@ export function EmailExplorer(_options: EmailExplorerOptions = {}) {
 
 			// Check if auth is required (either globally enabled or auth-specific routes)
 			// Auth is enforced by default (when enabled is undefined) unless explicitly disabled
-			const needsAuth = (options.auth?.enabled !== false && !isPublicRoute(url.pathname)) || requiresSession(url.pathname);
+			const needsAuth =
+				(options.auth?.enabled !== false && !isPublicRoute(url.pathname)) ||
+				requiresSession(url.pathname);
 
 			if (needsAuth) {
 				const session = await validateSession(request, env);
 				if (!session) {
-					return new Response(
-						JSON.stringify({ error: "Unauthorized" }),
-						{
-							status: 401,
-							headers: { "Content-Type": "application/json" },
-						},
-					);
+					return new Response(JSON.stringify({ error: "Unauthorized" }), {
+						status: 401,
+						headers: { "Content-Type": "application/json" },
+					});
 				}
 
 				// Create new Hono app with session in context

@@ -86,8 +86,8 @@
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useMailboxStore } from "@/stores/mailboxes";
 import { useAuthStore } from "@/stores/auth";
+import { useMailboxStore } from "@/stores/mailboxes";
 
 const router = useRouter();
 const mailboxStore = useMailboxStore();

@@ -10,7 +10,10 @@ export interface ComposeOptions {
 export const useUIStore = defineStore("ui", {
 	state: () => ({
 		isComposeModalOpen: false,
-		composeOptions: { mode: "new" as ComposeMode, originalEmail: null } as ComposeOptions,
+		composeOptions: {
+			mode: "new" as ComposeMode,
+			originalEmail: null,
+		} as ComposeOptions,
 	}),
 	actions: {
 		openComposeModal(options?: ComposeOptions) {

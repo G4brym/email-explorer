@@ -11,6 +11,22 @@
           <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{{ email.subject }}</h1>
         </div>
         <div class="flex items-center gap-2">
+          <button @click="handleReply" class="p-2.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-gray-700/50 transition-all duration-200" title="Reply">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button @click="handleReplyAll" class="p-2.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-gray-700/50 transition-all duration-200" title="Reply All">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+            </svg>
+          </button>
+          <button @click="handleForward" class="p-2.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-gray-700/50 transition-all duration-200" title="Forward">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H7a5 5 0 00-5 5v2a1 1 0 11-2 0v-2a7 7 0 017-7h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
           <button @click="toggleReadStatus" class="p-2.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-gray-700/50 transition-all duration-200" :title="email.read ? 'Mark as unread' : 'Mark as read'">
             <svg v-if="email.read" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -94,11 +110,13 @@ import { useRoute, useRouter } from "vue-router";
 import EmailIframe from "@/components/EmailIframe.vue";
 import { useEmailStore } from "@/stores/emails";
 import { useFolderStore } from "@/stores/folders";
+import { useUIStore } from "@/stores/ui";
 
 const emailStore = useEmailStore();
 const { currentEmail: email } = storeToRefs(emailStore);
 const folderStore = useFolderStore();
 const { folders } = storeToRefs(folderStore);
+const uiStore = useUIStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -215,6 +233,24 @@ const handleDelete = () => {
 			name: "EmailList",
 			params: { mailboxId: route.params.mailboxId, folder: "inbox" },
 		});
+	}
+};
+
+const handleReply = () => {
+	if (email.value) {
+		uiStore.openComposeModal({ mode: "reply", originalEmail: email.value });
+	}
+};
+
+const handleReplyAll = () => {
+	if (email.value) {
+		uiStore.openComposeModal({ mode: "reply-all", originalEmail: email.value });
+	}
+};
+
+const handleForward = () => {
+	if (email.value) {
+		uiStore.openComposeModal({ mode: "forward", originalEmail: email.value });
 	}
 };
 </script>

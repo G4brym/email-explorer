@@ -517,7 +517,6 @@ POST /api/v1/mailboxes/:mailboxId/emails/:emailId/forward
 - Show reply context in compose modal
 
 **UX Considerations:**
-- Keyboard shortcuts: `R` for reply, `A` for reply all, `F` for forward
 - Collapsible quoted text in replies
 - Option to include/exclude attachments on forward
 

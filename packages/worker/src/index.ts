@@ -17,6 +17,7 @@ import {
 	PostRevokeAccess,
 	PutUser,
 } from "./routes/auth";
+import { PostForwardEmail, PostReplyEmail } from "./routes/reply-forward";
 
 type AppContext = Context<{ Bindings: Env; Variables: { session?: Session } }>;
 
@@ -52,6 +53,9 @@ const EmailMetadataSchema = z.object({
 	date: z.string(),
 	read: z.boolean(),
 	starred: z.boolean(),
+	in_reply_to: z.string().nullable().optional(),
+	email_references: z.string().nullable().optional(),
+	thread_id: z.string().nullable().optional(),
 });
 
 const AttachmentSchema = z.object({
@@ -86,6 +90,9 @@ const SendEmailRequestSchema = z
 				}),
 			)
 			.optional(),
+		in_reply_to: z.string().optional(),
+		references: z.array(z.string()).optional(),
+		thread_id: z.string().optional(),
 	})
 	.refine((data) => data.html || data.text, {
 		message: "Either 'html' or 'text' must be provided",
@@ -373,7 +380,7 @@ class PostEmail extends OpenAPIRoute {
 	async handle(c: AppContext) {
 		const data = await this.getValidatedData<typeof this.schema>();
 		const { mailboxId } = data.params;
-		const { to, from, subject, html, text, attachments } = data.body;
+		const { to, from, subject, html, text, attachments, in_reply_to, references, thread_id } = data.body;
 
 		const key = `mailboxes/${mailboxId}.json`;
 		const obj = await c.env.BUCKET.head(key);
@@ -398,6 +405,8 @@ class PostEmail extends OpenAPIRoute {
 				disposition: att.disposition,
 				contentId: att.contentId,
 			})),
+			inReplyTo: in_reply_to,
+			references: references,
 		});
 
 		const message = new EmailMessage(from, toStr, mimeMessage);
@@ -441,6 +450,9 @@ class PostEmail extends OpenAPIRoute {
 				recipient: toStr,
 				date: new Date().toISOString(),
 				body: html || text || "",
+				in_reply_to: in_reply_to || null,
+				email_references: references ? JSON.stringify(references) : null,
+				thread_id: thread_id || in_reply_to || messageId,
 			},
 			attachmentData,
 		);
@@ -1211,6 +1223,8 @@ openapi.get("/api/v1/mailboxes/:mailboxId/emails/:id", GetEmail);
 openapi.put("/api/v1/mailboxes/:mailboxId/emails/:id", PutEmail);
 openapi.delete("/api/v1/mailboxes/:mailboxId/emails/:id", DeleteEmail);
 openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/move", PostMoveEmail);
+openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/reply", PostReplyEmail);
+openapi.post("/api/v1/mailboxes/:mailboxId/emails/:id/forward", PostForwardEmail);
 openapi.get("/api/v1/mailboxes/:mailboxId/folders", GetFolders);
 openapi.post("/api/v1/mailboxes/:mailboxId/folders", PostFolder);
 openapi.put("/api/v1/mailboxes/:mailboxId/folders/:id", PutFolder);

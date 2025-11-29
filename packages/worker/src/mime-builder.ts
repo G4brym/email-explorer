@@ -14,10 +14,12 @@ interface MimeMessageOptions {
 		disposition?: "attachment" | "inline";
 		contentId?: string;
 	}>;
+	inReplyTo?: string;
+	references?: string[];
 }
 
 export function buildMimeMessage(options: MimeMessageOptions): string {
-	const { from, to, subject, text, html, attachments } = options;
+	const { from, to, subject, text, html, attachments, inReplyTo, references } = options;
 	
 	const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2)}`;
 	const altBoundary = `----=_Alt_${Date.now()}_${Math.random().toString(36).substring(2)}`;
@@ -34,6 +36,15 @@ export function buildMimeMessage(options: MimeMessageOptions): string {
 	mime += `MIME-Version: 1.0\r\n`;
 	mime += `Date: ${new Date().toUTCString()}\r\n`;
 	mime += `Message-ID: <${crypto.randomUUID()}@cloudflare.workers.dev>\r\n`;
+	
+	// Threading headers
+	if (inReplyTo) {
+		mime += `In-Reply-To: <${inReplyTo}>\r\n`;
+	}
+	if (references && references.length > 0) {
+		const refs = references.map(ref => `<${ref}>`).join(' ');
+		mime += `References: ${refs}\r\n`;
+	}
 	
 	// Content-Type
 	if (attachments && attachments.length > 0) {

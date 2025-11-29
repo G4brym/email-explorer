@@ -20,6 +20,9 @@ interface EmailData {
 	body: string;
 	read?: boolean;
 	starred?: boolean;
+	in_reply_to?: string | null;
+	email_references?: string | null;
+	thread_id?: string | null;
 }
 
 interface AttachmentData {
@@ -340,6 +343,9 @@ export class MailboxDO extends DurableObject<Env> {
 				"date",
 				"read",
 				"starred",
+				"in_reply_to",
+				"email_references",
+				"thread_id",
 			]);
 
 		if (folder) {
@@ -614,6 +620,9 @@ export class MailboxDO extends DurableObject<Env> {
 				"date",
 				"read",
 				"starred",
+				"in_reply_to",
+				"email_references",
+				"thread_id",
 			]);
 
 		if (folder) {

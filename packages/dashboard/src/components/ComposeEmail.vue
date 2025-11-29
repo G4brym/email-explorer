@@ -8,7 +8,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold text-white">New Message</h2>
+          <h2 class="text-xl font-bold text-white">{{ modalTitle }}</h2>
         </div>
         <button @click="closeModal" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-all duration-200">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,14 +80,15 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useEmailStore } from "@/stores/emails";
 import { useMailboxStore } from "@/stores/mailboxes";
 import { useUIStore } from "@/stores/ui";
+import api from "@/services/api";
 
 const uiStore = useUIStore();
-const { isComposeModalOpen } = storeToRefs(uiStore);
+const { isComposeModalOpen, composeOptions } = storeToRefs(uiStore);
 const emailStore = useEmailStore();
 const mailboxStore = useMailboxStore();
 const { currentMailbox } = storeToRefs(mailboxStore);
@@ -98,9 +99,68 @@ const subject = ref("");
 const body = ref("");
 const error = ref<string | null>(null);
 
+const modalTitle = computed(() => {
+	switch (composeOptions.value.mode) {
+		case "reply":
+			return "Reply";
+		case "reply-all":
+			return "Reply All";
+		case "forward":
+			return "Forward";
+		default:
+			return "New Message";
+	}
+});
+
+// Format quoted text for replies
+const formatQuotedText = (text: string) => {
+	return text.split('\n').map(line => `> ${line}`).join('\n');
+};
+
 const closeModal = () => {
 	error.value = null;
+	to.value = "";
+	subject.value = "";
+	body.value = "";
 	uiStore.closeComposeModal();
+};
+
+// Watch for compose modal opening and pre-populate fields
+watch(isComposeModalOpen, (isOpen) => {
+	if (isOpen) {
+		const options = composeOptions.value;
+		const original = options.originalEmail;
+		
+		if (options.mode === "reply" && original) {
+			to.value = original.sender;
+			subject.value = original.subject.startsWith("Re: ") ? original.subject : `Re: ${original.subject}`;
+			body.value = `\n\n---\nOn ${original.date}, ${original.sender} wrote:\n${formatQuotedText(stripHtml(original.body))}`;
+		} else if (options.mode === "reply-all" && original) {
+			// For reply all, include both sender and original recipient
+			const recipients = new Set([original.sender]);
+			if (original.recipient && original.recipient !== currentMailbox.value?.email) {
+				recipients.add(original.recipient);
+			}
+			to.value = Array.from(recipients).join(", ");
+			subject.value = original.subject.startsWith("Re: ") ? original.subject : `Re: ${original.subject}`;
+			body.value = `\n\n---\nOn ${original.date}, ${original.sender} wrote:\n${formatQuotedText(stripHtml(original.body))}`;
+		} else if (options.mode === "forward" && original) {
+			to.value = "";
+			subject.value = original.subject.startsWith("Fwd: ") ? original.subject : `Fwd: ${original.subject}`;
+			body.value = `\n\n---\nForwarded message:\nFrom: ${original.sender}\nDate: ${original.date}\nSubject: ${original.subject}\n\n${stripHtml(original.body)}`;
+		} else {
+			to.value = "";
+			subject.value = "";
+			body.value = "";
+		}
+	}
+});
+
+// Helper to strip HTML tags
+const stripHtml = (html: string) => {
+	const div = document.createElement('div');
+	div.innerHTML = html;
+	return div.textContent || div.innerText || '';
 };
 
 const send = async () => {
@@ -111,13 +171,33 @@ const send = async () => {
 	}
 	try {
 		const mailboxId = route.params.mailboxId as string;
-		await emailStore.sendEmail(mailboxId, {
+		const emailData = {
 			to: to.value,
 			from: currentMailbox.value.email,
 			subject: subject.value,
 			html: body.value,
 			text: body.value,
-		});
+		};
+		
+		// Use appropriate API endpoint based on mode
+		if (composeOptions.value.mode === "reply" || composeOptions.value.mode === "reply-all") {
+			const originalEmailId = composeOptions.value.originalEmail?.id;
+			if (originalEmailId) {
+				await api.replyToEmail(mailboxId, originalEmailId, emailData);
+			} else {
+				throw new Error("Original email not found");
+			}
+		} else if (composeOptions.value.mode === "forward") {
+			const originalEmailId = composeOptions.value.originalEmail?.id;
+			if (originalEmailId) {
+				await api.forwardEmail(mailboxId, originalEmailId, emailData);
+			} else {
+				throw new Error("Original email not found");
+			}
+		} else {
+			await emailStore.sendEmail(mailboxId, emailData);
+		}
+		
 		to.value = "";
 		subject.value = "";
 		body.value = "";

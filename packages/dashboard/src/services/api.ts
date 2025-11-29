@@ -86,6 +86,10 @@ export default {
 			`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/attachments/${attachmentId}`,
 			{ responseType: "blob" },
 		),
+	replyToEmail: (mailboxId: string, emailId: string, email: any) =>
+		apiClient.post(`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/reply`, email),
+	forwardEmail: (mailboxId: string, emailId: string, email: any) =>
+		apiClient.post(`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/forward`, email),
 
 	// Folders
 	listFolders: (mailboxId: string) =>

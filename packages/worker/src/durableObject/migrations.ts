@@ -48,6 +48,17 @@ export const mailboxMigrations: Migration[] = [
             );
         `,
 	},
+	{
+		name: "2_add_email_threading",
+		sql: `
+            ALTER TABLE emails ADD COLUMN in_reply_to TEXT;
+            ALTER TABLE emails ADD COLUMN email_references TEXT;
+            ALTER TABLE emails ADD COLUMN thread_id TEXT;
+            
+            CREATE INDEX idx_emails_thread_id ON emails(thread_id);
+            CREATE INDEX idx_emails_in_reply_to ON emails(in_reply_to);
+        `,
+	},
 ];
 
 export const authMigrations: Migration[] = [

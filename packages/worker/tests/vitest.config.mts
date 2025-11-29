@@ -13,6 +13,11 @@ export default defineWorkersConfig({
 				},
 				miniflare: {
 					compatibilityFlags: ["nodejs_compat", "nodejs_als"],
+					serviceBindings: {
+						async SEND_EMAIL() {
+							return {};
+						},
+					},
 				},
 			},
 		},

@@ -52,7 +52,7 @@
 		"hono": "4.10.7",
 		"postal-mime": "^2.6.1",
 		"workers-qb": "^1.11.2",
-		"zod": "^3.25.76"
+		"zod": "^4.1.13"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.10.11",

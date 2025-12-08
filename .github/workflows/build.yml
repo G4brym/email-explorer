@@ -38,7 +38,7 @@ jobs:
       - name: Package artifact
         run: pnpm package
       - name: Archive package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: email-explorer-npm-package
           path: packages/worker/email-explorer-*

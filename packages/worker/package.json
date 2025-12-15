@@ -49,10 +49,10 @@
 	},
 	"dependencies": {
 		"chanfana": "2.8.3",
-		"hono": "4.10.7",
+		"hono": "4.11.1",
 		"postal-mime": "^2.6.1",
 		"workers-qb": "^1.11.2",
-		"zod": "^3.25.76"
+		"zod": "^4.2.0"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.10.11",

@@ -200,7 +200,7 @@ class GetMailboxes extends OpenAPIRoute {
 		const list = await c.env.BUCKET.list({
 			prefix: "mailboxes/",
 		});
-		const mailboxes = list.objects.map((obj) => {
+		let mailboxes = list.objects.map((obj) => {
 			const id = obj.key.replace("mailboxes/", "").replace(".json", "");
 			return {
 				id,
@@ -208,6 +208,14 @@ class GetMailboxes extends OpenAPIRoute {
 				email: id,
 			};
 		});
+
+		// Filter mailboxes based on user permissions (admins see all)
+		const session = c.get("session");
+		if (session && !session.isAdmin) {
+			const allowed = await getUserAllowedMailboxes(c.env, session.userId);
+			mailboxes = mailboxes.filter((m) => allowed.has(m.id));
+		}
+
 		return c.json(mailboxes);
 	}
 }
@@ -1550,6 +1558,34 @@ function requiresSession(pathname: string): boolean {
 	return authRoutes.some((route) => pathname.startsWith(route));
 }
 
+// Helper function to get the set of mailbox IDs a user can access
+async function getUserAllowedMailboxes(
+	env: Env,
+	userId: string,
+): Promise<Set<string>> {
+	const authId = env.MAILBOX.idFromName("AUTH");
+	const authDO = env.MAILBOX.get(authId);
+	const userMailboxes = await authDO.getUserMailboxes(userId);
+	return new Set(userMailboxes.map((m) => m.mailboxId));
+}
+
+// Helper function to check if user can access a specific mailbox
+async function canAccessMailbox(
+	env: Env,
+	session: Session,
+	mailboxId: string,
+): Promise<boolean> {
+	if (session.isAdmin) return true;
+	const allowed = await getUserAllowedMailboxes(env, session.userId);
+	return allowed.has(mailboxId);
+}
+
+// Extract mailboxId from URL path (e.g., /api/v1/mailboxes/:mailboxId/...)
+function extractMailboxId(pathname: string): string | null {
+	const match = pathname.match(/^\/api\/v1\/mailboxes\/([^/]+)/);
+	return match ? decodeURIComponent(match[1]) : null;
+}
+
 const app = new Hono<{ Bindings: Env; Variables: { session?: Session } }>();
 app.use("/api/*", cors());
 const openapi = fromHono(app);
@@ -1727,6 +1763,18 @@ export function EmailExplorer(_options: EmailExplorerOptions = {}) {
 						status: 401,
 						headers: { "Content-Type": "application/json" },
 					});
+				}
+
+				// Check mailbox-level access for non-admin users
+				const mailboxId = extractMailboxId(url.pathname);
+				if (mailboxId && !session.isAdmin) {
+					const hasAccess = await canAccessMailbox(env, session, mailboxId);
+					if (!hasAccess) {
+						return new Response(JSON.stringify({ error: "Forbidden" }), {
+							status: 403,
+							headers: { "Content-Type": "application/json" },
+						});
+					}
 				}
 
 				// Create new Hono app with session in context

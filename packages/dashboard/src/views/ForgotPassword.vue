@@ -65,8 +65,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import api from "@/services/api";
 import { useToast } from "@/composables/useToast";
+import api from "@/services/api";
 
 const router = useRouter();
 const { success, error: showError } = useToast();
@@ -85,7 +85,8 @@ async function handleForgotPassword() {
 		successMessage.value = `Password reset link sent to ${email.value}. Please check your email.`;
 		success("Reset link sent! Check your email.");
 	} catch (e: any) {
-		const errorMessage = e.response?.data?.error || "Failed to send reset link. Please try again.";
+		const errorMessage =
+			e.response?.data?.error || "Failed to send reset link. Please try again.";
 		error.value = errorMessage;
 		showError(errorMessage);
 	} finally {

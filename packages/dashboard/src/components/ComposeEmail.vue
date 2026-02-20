@@ -81,11 +81,11 @@
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useToast } from "@/composables/useToast";
 import api from "@/services/api";
 import { useEmailStore } from "@/stores/emails";
 import { useMailboxStore } from "@/stores/mailboxes";
 import { useUIStore } from "@/stores/ui";
-import { useToast } from "@/composables/useToast";
 import RichTextEditor from "./RichTextEditor.vue";
 
 const uiStore = useUIStore();
@@ -246,7 +246,8 @@ const send = async () => {
 		closeModal();
 		showSuccessToast("Email sent successfully!");
 	} catch (e: any) {
-		const errorMessage = e.response?.data?.error || "An unexpected error occurred.";
+		const errorMessage =
+			e.response?.data?.error || "An unexpected error occurred.";
 		error.value = errorMessage;
 		showErrorToast(errorMessage);
 	} finally {

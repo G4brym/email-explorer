@@ -197,10 +197,12 @@ class GetMailboxes extends OpenAPIRoute {
 	};
 
 	async handle(c: AppContext) {
+		const session = c.get("session");
+
 		const list = await c.env.BUCKET.list({
 			prefix: "mailboxes/",
 		});
-		const mailboxes = list.objects.map((obj) => {
+		const allMailboxes = list.objects.map((obj) => {
 			const id = obj.key.replace("mailboxes/", "").replace(".json", "");
 			return {
 				id,
@@ -208,7 +210,19 @@ class GetMailboxes extends OpenAPIRoute {
 				email: id,
 			};
 		});
-		return c.json(mailboxes);
+
+		// If no session (auth disabled) or user is admin, return all mailboxes
+		if (!session || session.isAdmin) {
+			return c.json(allMailboxes);
+		}
+
+		// Non-admin users can only see mailboxes they have access to
+		const authId = c.env.MAILBOX.idFromName("AUTH");
+		const authDO = c.env.MAILBOX.get(authId);
+		const userMailboxes = await authDO.getUserMailboxes(session.userId);
+		const allowedMailboxIds = new Set(userMailboxes.map((m) => m.mailboxId));
+
+		return c.json(allMailboxes.filter((m) => allowedMailboxIds.has(m.id)));
 	}
 }
 
@@ -1740,6 +1754,28 @@ export function EmailExplorer(_options: EmailExplorerOptions = {}) {
 					c.set("session", session);
 					await next();
 				});
+
+				// Middleware to check mailbox access for non-admin users
+				const checkMailboxAccess = async (c: any, next: any) => {
+					if (session.isAdmin) {
+						await next();
+						return;
+					}
+					const mailboxId = c.req.param("mailboxId");
+					if (!mailboxId) {
+						await next();
+						return;
+					}
+					const authId = env.MAILBOX.idFromName("AUTH");
+					const authDO = env.MAILBOX.get(authId);
+					const userMailboxes = await authDO.getUserMailboxes(session.userId);
+					if (!userMailboxes.some((m: any) => m.mailboxId === mailboxId)) {
+						return c.json({ error: "You don't have access to this mailbox" }, 403);
+					}
+					await next();
+				};
+				authApp.use("/api/v1/mailboxes/:mailboxId", checkMailboxAccess);
+				authApp.use("/api/v1/mailboxes/:mailboxId/*", checkMailboxAccess);
 
 				// Mount the main app
 				authApp.route("/", app);

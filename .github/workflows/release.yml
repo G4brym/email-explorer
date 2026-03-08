@@ -22,8 +22,7 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install
@@ -77,10 +76,13 @@ jobs:
             if [ -z "$BODY" ]; then
               BODY="See [CHANGELOG.md](https://github.com/G4brym/email-explorer/blob/main/packages/worker/CHANGELOG.md) for details."
             fi
+            NOTES_FILE=$(mktemp)
+            echo "$BODY" > "$NOTES_FILE"
             gh release create "$TAG" \
               --title "$TAG" \
-              --notes "$BODY" \
+              --notes-file "$NOTES_FILE" \
               --latest
+            rm -f "$NOTES_FILE"
             echo "Created release $TAG"
           fi
         env:

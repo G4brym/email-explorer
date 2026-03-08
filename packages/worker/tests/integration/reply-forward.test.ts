@@ -1,6 +1,6 @@
-import { SELF, env } from "cloudflare:test";
+import { SELF, env, runInDurableObject } from "cloudflare:test";
 import { describe, expect, it, beforeEach } from "vitest";
-import {authenticatedFetch, mailboxId, testAuthBeforeAll} from "./utils";
+import {authenticatedFetch, createMailbox, mailboxId, testAuthBeforeAll} from "./utils";
 
 describe("Reply & Forward Functionality Integration Tests", () => {
 	let originalEmailId: string;
@@ -9,27 +9,25 @@ describe("Reply & Forward Functionality Integration Tests", () => {
 	beforeEach(async () => {
 		await testAuthBeforeAll()
 
-		// Create a test mailbox
-		await authenticatedFetch(`http://local.test/api/v1/debug/create-mailbox`, { method: "POST" });
+		// Create a test mailbox directly in R2
+		await createMailbox();
 
-		// Create an original email to reply to
-		const sendResponse = await authenticatedFetch(
-			`http://local.test/api/v1/mailboxes/${mailboxId}/emails`,
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					to: "recipient@example.com",
-					from: mailboxId,
-					subject: "Original Email",
-					text: "This is the original email body",
-					html: "<p>This is the original email body</p>",
-				}),
-			},
-		);
+		// Create an original email directly in the Durable Object
+		originalEmailId = crypto.randomUUID();
+		// @ts-expect-error
+		const doId = env.MAILBOX.idFromName(mailboxId);
+		// @ts-expect-error
+		const doStub = env.MAILBOX.get(doId);
 
-		const sendBody = await sendResponse.json<any>();
-		originalEmailId = sendBody.id;
+		await runInDurableObject(doStub, async (_instance, state) => {
+			state.storage.sql.exec(
+				`INSERT INTO emails (id, folder_id, subject, sender, recipient, date, body)
+				 VALUES (?, 'sent', 'Original Email', ?, 'recipient@example.com', ?, '<p>This is the original email body</p>')`,
+				originalEmailId,
+				mailboxId,
+				new Date().toISOString(),
+			);
+		});
 	});
 
 	describe("Reply Functionality", () => {

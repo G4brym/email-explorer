@@ -3,11 +3,23 @@ import { DOQB } from "workers-qb";
 import type { Env, Session, User } from "../types";
 import { authMigrations, mailboxMigrations } from "./migrations";
 
+const ALLOWED_SORT_COLUMNS = [
+	"id",
+	"subject",
+	"sender",
+	"recipient",
+	"date",
+	"read",
+	"starred",
+] as const;
+
+type SortColumn = (typeof ALLOWED_SORT_COLUMNS)[number];
+
 interface GetEmailsOptions {
 	folder?: string;
 	page?: number;
 	limit?: number;
-	sortColumn?: string;
+	sortColumn?: SortColumn;
 	sortDirection?: "ASC" | "DESC";
 }
 
@@ -389,9 +401,15 @@ export class MailboxDO extends DurableObject<Env> {
 			folder,
 			page = 1,
 			limit = 25,
-			sortColumn = "date",
+			sortColumn: rawSortColumn = "date",
 			sortDirection = "DESC",
 		} = options;
+
+		const sortColumn: SortColumn = ALLOWED_SORT_COLUMNS.includes(
+			rawSortColumn as SortColumn,
+		)
+			? rawSortColumn
+			: "date";
 
 		let query = this.#qb
 			.select<EmailData>("emails")

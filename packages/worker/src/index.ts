@@ -411,7 +411,17 @@ class GetEmails extends OpenAPIRoute {
 				folder: z.string().optional(),
 				page: z.number().int().optional(),
 				limit: z.number().int().optional(),
-				sortColumn: z.string().optional(),
+				sortColumn: z
+					.enum([
+						"id",
+						"subject",
+						"sender",
+						"recipient",
+						"date",
+						"read",
+						"starred",
+					])
+					.optional(),
 				sortDirection: z.enum(["ASC", "DESC"]).optional(),
 				filter: z.string().optional(),
 			}),

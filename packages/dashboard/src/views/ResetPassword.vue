@@ -73,10 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import api from "@/services/api";
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
+import api from "@/services/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -113,13 +113,15 @@ async function handleResetPassword() {
 
 	try {
 		await api.resetPassword(token.value, password.value);
-		successMessage.value = "Password reset successfully! You can now log in with your new password.";
+		successMessage.value =
+			"Password reset successfully! You can now log in with your new password.";
 		success("Password reset successfully!", 5000);
 		setTimeout(() => {
 			router.push("/login");
 		}, 5000);
 	} catch (e: any) {
-		const errorMessage = e.response?.data?.error || "Failed to reset password. Please try again.";
+		const errorMessage =
+			e.response?.data?.error || "Failed to reset password. Please try again.";
 		error.value = errorMessage;
 		showError(errorMessage);
 	} finally {

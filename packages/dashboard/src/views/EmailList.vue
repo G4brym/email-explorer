@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed, onMounted, onUnmounted, watch, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useEmailStore } from "@/stores/emails";
 import { useFolderStore } from "@/stores/folders";

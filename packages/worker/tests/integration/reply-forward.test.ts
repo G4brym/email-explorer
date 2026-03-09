@@ -10,7 +10,7 @@ describe("Reply & Forward Functionality Integration Tests", () => {
 		await testAuthBeforeAll()
 
 		// Create a test mailbox
-		await authenticatedFetch(`http://local.test/api/v1/debug/create-mailbox`);
+		await authenticatedFetch(`http://local.test/api/v1/debug/create-mailbox`, { method: "POST" });
 
 		// Create an original email to reply to
 		const sendResponse = await authenticatedFetch(

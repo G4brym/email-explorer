@@ -34,23 +34,22 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from '@/composables/useToast';
+import { useToast } from "@/composables/useToast";
 
 const { toasts, removeToast } = useToast();
 
 const getToastClasses = (type: string) => {
-  const baseClasses = 'text-white';
-  switch (type) {
-    case 'success':
-      return `${baseClasses} bg-green-500`;
-    case 'error':
-      return `${baseClasses} bg-red-500`;
-    case 'warning':
-      return `${baseClasses} bg-yellow-500`;
-    case 'info':
-    default:
-      return `${baseClasses} bg-blue-500`;
-  }
+	const baseClasses = "text-white";
+	switch (type) {
+		case "success":
+			return `${baseClasses} bg-green-500`;
+		case "error":
+			return `${baseClasses} bg-red-500`;
+		case "warning":
+			return `${baseClasses} bg-yellow-500`;
+		default:
+			return `${baseClasses} bg-blue-500`;
+	}
 };
 </script>
 

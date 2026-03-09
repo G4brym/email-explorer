@@ -160,10 +160,10 @@
 import { storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useToast } from "@/composables/useToast";
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useMailboxStore } from "@/stores/mailboxes";
-import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const mailboxStore = useMailboxStore();
@@ -197,7 +197,7 @@ const closeCreateMailboxModal = () => {
 
 const handleCreateMailbox = async () => {
 	createError.value = null;
-	
+
 	if (!newMailboxEmail.value || !newMailboxName.value) {
 		createError.value = "Please fill in all fields";
 		return;

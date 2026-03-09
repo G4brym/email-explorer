@@ -137,13 +137,14 @@ export class PostReplyEmail extends OpenAPIRoute {
 			for (const att of attachments) {
 				const attachmentId = crypto.randomUUID();
 				const key = `attachments/${messageId}/${attachmentId}/${att.filename}`;
-				await c.env.BUCKET.put(key, atob(att.content));
+				const decoded = atob(att.content);
+				await c.env.BUCKET.put(key, decoded);
 				attachmentData.push({
 					id: attachmentId,
 					email_id: messageId,
 					filename: att.filename,
 					mimetype: att.type,
-					size: atob(att.content).length,
+					size: decoded.length,
 					content_id: att.contentId || null,
 					disposition: att.disposition,
 				});
@@ -253,13 +254,14 @@ export class PostForwardEmail extends OpenAPIRoute {
 			for (const att of attachments) {
 				const attachmentId = crypto.randomUUID();
 				const key = `attachments/${messageId}/${attachmentId}/${att.filename}`;
-				await c.env.BUCKET.put(key, atob(att.content));
+				const decoded = atob(att.content);
+				await c.env.BUCKET.put(key, decoded);
 				attachmentData.push({
 					id: attachmentId,
 					email_id: messageId,
 					filename: att.filename,
 					mimetype: att.type,
-					size: atob(att.content).length,
+					size: decoded.length,
 					content_id: att.contentId || null,
 					disposition: att.disposition,
 				});

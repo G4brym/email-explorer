@@ -131,7 +131,9 @@ router.beforeEach(async (to, _from, next) => {
 	} else if (
 		isPublicRoute &&
 		authStore.isAuthenticated &&
-		(to.name === "Login" || to.name === "Register" || to.name === "ForgotPassword")
+		(to.name === "Login" ||
+			to.name === "Register" ||
+			to.name === "ForgotPassword")
 	) {
 		// Redirect to home if already authenticated and trying to access login/register/forgot-password
 		next({ name: "Home" });

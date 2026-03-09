@@ -1,5 +1,5 @@
-import { SELF, env } from "cloudflare:test";
-import { describe, expect, it, beforeEach } from "vitest";
+import { env, SELF } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
 
 describe("Mailbox Authorization Regression Tests (Issue #19)", () => {
 	// Helper to make authenticated request
@@ -38,17 +38,14 @@ describe("Mailbox Authorization Regression Tests (Issue #19)", () => {
 			}),
 		});
 
-		const adminLogin = await SELF.fetch(
-			"http://local.test/api/v1/auth/login",
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					email: "admin@test.com",
-					password: "password123",
-				}),
-			},
-		);
+		const adminLogin = await SELF.fetch("http://local.test/api/v1/auth/login", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				email: "admin@test.com",
+				password: "password123",
+			}),
+		});
 		const adminBody = await adminLogin.json<any>();
 		const adminToken = adminBody.id;
 
@@ -68,17 +65,14 @@ describe("Mailbox Authorization Regression Tests (Issue #19)", () => {
 		const user = await registerRes.json<any>();
 
 		// Login as non-admin user
-		const userLogin = await SELF.fetch(
-			"http://local.test/api/v1/auth/login",
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					email: "user@test.com",
-					password: "password123",
-				}),
-			},
-		);
+		const userLogin = await SELF.fetch("http://local.test/api/v1/auth/login", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				email: "user@test.com",
+				password: "password123",
+			}),
+		});
 		const userBody = await userLogin.json<any>();
 		const userToken = userBody.id;
 
@@ -304,8 +298,7 @@ describe("Mailbox Authorization Regression Tests (Issue #19)", () => {
 
 	describe("Access grant and revoke lifecycle", () => {
 		it("should block access after mailbox access is revoked", async () => {
-			const { adminToken, userToken, userId } =
-				await setupUsersAndMailboxes();
+			const { adminToken, userToken, userId } = await setupUsersAndMailboxes();
 
 			// Verify user can access the allowed mailbox
 			const beforeResponse = await authenticatedFetch(
@@ -345,8 +338,7 @@ describe("Mailbox Authorization Regression Tests (Issue #19)", () => {
 		});
 
 		it("should allow access after mailbox access is granted", async () => {
-			const { adminToken, userToken, userId } =
-				await setupUsersAndMailboxes();
+			const { adminToken, userToken, userId } = await setupUsersAndMailboxes();
 
 			// Verify user cannot access the forbidden mailbox
 			const beforeResponse = await authenticatedFetch(

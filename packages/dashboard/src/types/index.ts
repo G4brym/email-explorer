@@ -1,8 +1,21 @@
+export interface SignatureSettings {
+	enabled: boolean;
+	text: string;
+	html?: string;
+}
+
+export interface MailboxSettings {
+	fromName?: string;
+	forwarding?: { enabled: boolean; email: string };
+	signature?: SignatureSettings;
+	autoReply?: { enabled: boolean; subject: string; message: string };
+}
+
 export interface Mailbox {
 	id: string;
 	email: string;
 	name: string;
-	settings?: any;
+	settings?: MailboxSettings;
 }
 
 export interface Email {

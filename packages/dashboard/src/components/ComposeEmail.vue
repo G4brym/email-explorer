@@ -131,18 +131,29 @@ const closeModal = () => {
 	uiStore.closeComposeModal();
 };
 
+// Build signature HTML block if enabled
+const getSignatureBlock = (): string => {
+	const sig = currentMailbox.value?.settings?.signature;
+	if (sig?.enabled && (sig?.html || sig?.text)) {
+		const content = sig.html || sig.text;
+		return `<div style="border-top: 1px solid #ccc; margin-top: 16px; padding-top: 12px;">${content}</div>`;
+	}
+	return "";
+};
+
 // Watch for compose modal opening and pre-populate fields
 watch(isComposeModalOpen, (isOpen) => {
 	if (isOpen) {
 		const options = composeOptions.value;
 		const original = options.originalEmail;
+		const sigBlock = getSignatureBlock();
 
 		if (options.mode === "reply" && original) {
 			to.value = original.sender;
 			subject.value = original.subject.startsWith("Re: ")
 				? original.subject
 				: `Re: ${original.subject}`;
-			body.value = `<br><br><blockquote style="border-left: 2px solid #ccc; margin: 0; padding-left: 1em; color: #666;">On ${original.date}, ${original.sender} wrote:<br><br>${original.body}</blockquote>`;
+			body.value = `<br>${sigBlock}<br><blockquote style="border-left: 2px solid #ccc; margin: 0; padding-left: 1em; color: #666;">On ${original.date}, ${original.sender} wrote:<br><br>${original.body}</blockquote>`;
 		} else if (options.mode === "reply-all" && original) {
 			// For reply all, include both sender and original recipient
 			const recipients = new Set([original.sender]);
@@ -156,13 +167,13 @@ watch(isComposeModalOpen, (isOpen) => {
 			subject.value = original.subject.startsWith("Re: ")
 				? original.subject
 				: `Re: ${original.subject}`;
-			body.value = `<br><br><blockquote style="border-left: 2px solid #ccc; margin: 0; padding-left: 1em; color: #666;">On ${original.date}, ${original.sender} wrote:<br><br>${original.body}</blockquote>`;
+			body.value = `<br>${sigBlock}<br><blockquote style="border-left: 2px solid #ccc; margin: 0; padding-left: 1em; color: #666;">On ${original.date}, ${original.sender} wrote:<br><br>${original.body}</blockquote>`;
 		} else if (options.mode === "forward" && original) {
 			to.value = "";
 			subject.value = original.subject.startsWith("Fwd: ")
 				? original.subject
 				: `Fwd: ${original.subject}`;
-			body.value = `<br><br><div style="border: 1px solid #ddd; padding: 1em; background-color: #f9f9f9; margin: 1em 0;">
+			body.value = `<br>${sigBlock}<br><div style="border: 1px solid #ddd; padding: 1em; background-color: #f9f9f9; margin: 1em 0;">
 <strong>Forwarded message:</strong><br>
 <strong>From:</strong> ${original.sender}<br>
 <strong>Date:</strong> ${original.date}<br>
@@ -172,7 +183,7 @@ ${original.body}
 		} else {
 			to.value = "";
 			subject.value = "";
-			body.value = "";
+			body.value = sigBlock ? `<br><br>${sigBlock}` : "";
 		}
 	}
 });

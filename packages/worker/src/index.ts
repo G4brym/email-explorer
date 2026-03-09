@@ -1821,7 +1821,10 @@ export function EmailExplorer(_options: EmailExplorerOptions = {}) {
 					const authDO = env.MAILBOX.get(authId);
 					const userMailboxes = await authDO.getUserMailboxes(session.userId);
 					if (!userMailboxes.some((m: any) => m.mailboxId === mailboxId)) {
-						return c.json({ error: "You don't have access to this mailbox" }, 403);
+						return c.json(
+							{ error: "You don't have access to this mailbox" },
+							403,
+						);
 					}
 					await next();
 				};

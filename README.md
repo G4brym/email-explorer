@@ -337,7 +337,7 @@ Planned features for future releases:
 - [ ] Emoji picker in composer
 - [ ] Table support in rich text editor
 - [ ] Image uploads and inline images
-- [ ] Email signatures
+- [x] Email signatures (basic — single signature per mailbox)
 - [ ] Keyboard shortcuts
 - [ ] Mobile app (React Native)
 

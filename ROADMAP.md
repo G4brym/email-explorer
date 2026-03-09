@@ -762,74 +762,30 @@ DELETE /api/v1/mailboxes/:mailboxId/saved-searches/:id
 
 ---
 
-### 6. Email Signatures ✒️
+### 6. Email Signatures ✒️ ✅ (Basic)
 
-**Priority:** Medium  
-**Estimated Effort:** 3-4 days
+**Priority:** Medium
+**Status:** Partially implemented
 
 #### Overview
 Allow users to create and manage email signatures that auto-append to outgoing emails.
 
-#### Implementation Details
+#### What's Implemented
+- Single signature per mailbox stored in mailbox settings (R2 JSON)
+- Enable/disable toggle in Settings page
+- Rich text editor for signature content (reuses existing `RichTextEditor` component)
+- Auto-appends signature to new emails, replies, reply-all, and forwards in ComposeEmail
+- Signature separator line matching major email client conventions
+- Both HTML and plain text versions stored
+- TypeScript types for `SignatureSettings` and `MailboxSettings`
 
-**Database Schema:**
-```sql
-CREATE TABLE signatures (
-  id TEXT PRIMARY KEY,
-  mailbox_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  content TEXT NOT NULL, -- HTML content
-  is_default INTEGER DEFAULT 0,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
-);
-```
-
-**API Endpoints:**
-```typescript
-GET /api/v1/mailboxes/:mailboxId/signatures
-POST /api/v1/mailboxes/:mailboxId/signatures
-PUT /api/v1/mailboxes/:mailboxId/signatures/:id
-DELETE /api/v1/mailboxes/:mailboxId/signatures/:id
-PUT /api/v1/mailboxes/:mailboxId/signatures/:id/default
-```
-
-**Frontend Changes:**
-- Add signature editor in `Settings.vue`
-- Use rich text editor for signature content
-- Add signature selector dropdown in compose
-- Auto-append default signature on compose open
-- Support signature variables:
-  - `{{name}}` - User name
-  - `{{email}}` - Email address
-  - `{{date}}` - Current date
-  - `{{company}}` - Company name
-
-**Signature Editor:**
-```vue
-<div class="signature-manager">
-  <h2>Email Signatures</h2>
-  
-  <div v-for="sig in signatures" class="signature-item">
-    <input v-model="sig.name" placeholder="Signature name" />
-    <RichTextEditor v-model="sig.content" />
-    <label>
-      <input type="radio" :value="sig.id" v-model="defaultSignatureId" />
-      Set as default
-    </label>
-    <button @click="deleteSignature(sig.id)">Delete</button>
-  </div>
-  
-  <button @click="createSignature">New Signature</button>
-</div>
-```
-
-**Features:**
-- Multiple signatures per mailbox
-- Reply signature vs. new email signature
+#### Deferred for Future Enhancement
+- Multiple signatures per mailbox (would require dedicated DB table and API endpoints)
+- Signature selector dropdown in compose
+- Signature variables (`{{name}}`, `{{email}}`, `{{date}}`, `{{company}}`)
+- Reply signature vs. new email signature differentiation
 - Image upload for logos
-- Social media links
-- Signature preview
+- Social media links template
 
 ---
 

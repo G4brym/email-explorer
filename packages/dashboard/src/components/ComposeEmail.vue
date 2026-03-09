@@ -135,7 +135,9 @@ const closeModal = () => {
 const getSignatureBlock = (): string => {
 	const sig = currentMailbox.value?.settings?.signature;
 	if (sig?.enabled && (sig?.html || sig?.text)) {
-		const content = sig.html || sig.text;
+		const escapeHtml = (s: string) =>
+			s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		const content = sig.html || escapeHtml(sig.text);
 		return `<div style="border-top: 1px solid #ccc; margin-top: 16px; padding-top: 12px;">${content}</div>`;
 	}
 	return "";

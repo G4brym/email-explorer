@@ -1,6 +1,6 @@
 {
 	"name": "email-explorer",
-	"version": "1.0.4",
+	"version": "1.1.0",
 	"description": "A self-hosted, serverless worker for sending and receiving emails on Cloudflare",
 	"scripts": {
 		"build": "tsup src/index.ts --format esm --external cloudflare:workers --external cloudflare:email --dts && cp -R ../dashboard/dist/ dashboard/ && cp ../../README.md . && cp ../../LICENSE .",

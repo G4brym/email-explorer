@@ -56,8 +56,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: ${{ steps.check.outputs.published == 'false' && 'cd packages/worker && npm publish --provenance --access public' || 'echo Already published, skipping' }}
-          version: pnpm changeset version
+          publish: ${{ steps.check.outputs.published == 'false' && 'npm publish ./packages/worker --provenance --access public' || 'echo Already published, skipping' }}
+          version: node scripts/changeset-version.cjs
           title: "chore: version packages"
           commit: "chore: version packages"
         env:
